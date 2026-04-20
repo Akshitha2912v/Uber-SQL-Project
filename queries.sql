@@ -51,7 +51,9 @@ SELECT start_city, AVG(fare) avg_fare
 FROM rides
 GROUP BY start_city;
 
--- Q9: Trigger
+-- Q9: Trigger for Ride Status Change Logging
+
+-- Step 1: Create log table
 CREATE TABLE ride_status_log (
 log_id INT AUTO_INCREMENT PRIMARY KEY,
 ride_id VARCHAR(50),
@@ -59,3 +61,18 @@ old_status VARCHAR(20),
 new_status VARCHAR(20),
 changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Step 2: Create trigger
+DELIMITER $$
+
+CREATE TRIGGER trg_ride_status_change
+AFTER UPDATE ON rides
+FOR EACH ROW
+BEGIN
+    IF OLD.ride_status <> NEW.ride_status THEN
+        INSERT INTO ride_status_log (ride_id, old_status, new_status)
+        VALUES (NEW.ride_id, OLD.ride_status, NEW.ride_status);
+    END IF;
+END$$
+
+DELIMITER ;
